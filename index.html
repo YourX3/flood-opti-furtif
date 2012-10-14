@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>fourmizzz-flood</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="floodCalc.js"></script>
+    <style>
+        .error {
+            color: #800;
+            background-color: #ffdddd;
+            border: solid 1px #ff8888;
+            display: inline-block;
+            padding: 2px 10px;
+        }
+        #calculateurDeFlood {
+            float:left;
+            width: 400px;
+        }
+        #espaceResultat {
+            margin-left: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fourmizzz Flood</h1>
+    <form id="calculateurDeFlood">
+        <input placeholder="tdc du floodeur" name="tdcFlooder" required autofocus />
+        <input placeholder="tdc de la cible" name="tdcCible" required />
+        <br/>
+        ->>Remplacer par un slider entre OptiMax et FurtiMax sur 5 niveaux pour faire marcher la furtivité
+        <input type="submit" name="optiFlood" value="Flood optimisé"/>
+        <input type="submit" name="hybridFlood" value="Flood hybride" style="opacity:.7"/>
+        <input type="submit" name="furtiFlood" value="Flood anti-traçeur" style="opacity:.5"/>
+    </form>
+    <div id="espaceResultat">
+    </div>
+    <script>
+        $('#calculateurDeFlood').submit(function(){
+            try {
+                var leFloodeur = new Fourmiliere(str2int(this.tdcFlooder.value));
+                var laCible = new Fourmiliere(str2int(this.tdcCible.value));
+                //if(this.furtiFlood.value) leFloodeur.niveauDeDiscretion = 5;
+                //if(this.hybridFlood.value) leFloodeur.niveauDeDiscretion = 3;
+                var tdcAFlooder = leFloodeur.calculLeProchainFloodSur(laCible);
+                $('#espaceResultat').html(tdcAFlooder);
+            } catch (exeption) {
+                $('#espaceResultat').html('<span class="error">'+exeption.message+'</span>');
+            }
+            return false;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>test fourmizzz-flood</title>
+    
+    <!-- lib nécessaire pour executer le code métier -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <!-- lib de test/spec -->
+    <link rel="stylesheet" type="text/css" href="http://pivotal.github.com/jasmine/lib/jasmine.css">
+    <script type="text/javascript" src="http://pivotal.github.com/jasmine/lib/jasmine.js"></script>
+    <script type="text/javascript" src="http://pivotal.github.com/jasmine/lib/jasmine-html.js"></script>
+    <script type="text/javascript" src="https://raw.github.com/velesin/jasmine-jquery/master/lib/jasmine-jquery.js"></script>
+    <!-- fichier de test/spec -->
+    <script type="text/javascript" src="test.js"></script>
+    <!-- fichier métier -->
+    <script type="text/javascript" src="../floodCalc.js"></script>
+    
+    
+    
+    
+    
+    <!-- exécute les tests/spec -->
+    <script type="text/javascript">
+    (function() {
+        var jasmineEnv = jasmine.getEnv();
+        jasmineEnv.updateInterval = 1000;
+        
+        var htmlReporter = new jasmine.HtmlReporter();
+        
+        jasmineEnv.addReporter(htmlReporter);
+        
+        jasmineEnv.specFilter = function(spec) {
+            return htmlReporter.specFilter(spec);
+        };
+        
+        var currentWindowOnload = window.onload;
+        
+        window.onload = function() {
+            if (currentWindowOnload) {
+                currentWindowOnload();
+            }
+            execJasmine();
+        };
+        
+        function execJasmine() {
+            jasmineEnv.execute();
+        }
+        
+    })();
+  </script>
+</head>
+<body>
+</body>
+</html>
