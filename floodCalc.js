@@ -38,8 +38,9 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
         return tdcAFlooder;
     }
     this.arrondiLeFloodSelonLeNiveauDeDiscretion = function (tdcAFlooder){
-        if (this.niveauDeDiscretion>=4) return tronquerA_N_ChiffresSignificatif(tdcAFlooder, 1);
-        if (this.niveauDeDiscretion>=2) return tronquerA_N_ChiffresSignificatif(tdcAFlooder, 2);
+        if (this.niveauDeDiscretion>=5) return tronquerA_N_ChiffresSignificatif(tdcAFlooder, 1);
+        if (this.niveauDeDiscretion==4) return tronquerA_N_ChiffresSignificatif(tdcAFlooder, 2);
+        if (this.niveauDeDiscretion==2) return tronquerA_N_ChiffresSignificatif(tdcAFlooder, 2);
         return tdcAFlooder;
     }
 }

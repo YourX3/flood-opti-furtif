@@ -113,10 +113,10 @@ describe("Dans l'applicatif métier on trouve :", function() {
             expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(100000000); // précision global 1
             
             leFloodeur.niveauDeDiscretion=4
-            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(100000000); // précision global 2
+            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(190000000); // précision global 1
             
             leFloodeur.niveauDeDiscretion=3
-            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(190000000); // précision global 1
+            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(191097375); // précision global 1
             
             leFloodeur.niveauDeDiscretion=2
             expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(190000000); // précision global 2

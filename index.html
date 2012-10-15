@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>fourmizzz-flood</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script async="true" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+	<script async="true" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1/i18n/jquery-ui-i18n.min.js"></script>
+	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" />
     <script type="text/javascript" src="floodCalc.js"></script>
     <style>
         .error {
@@ -15,40 +18,128 @@
         }
         #calculateurDeFlood {
             float:left;
-            width: 400px;
+            width: 500px;
+            padding:10px;
+            font-family: verdana;
         }
-        #espaceResultat {
-            margin-left: 400px;
+        #espaceResultat {margin-left: 530px;}
+        #tdcFloodeur, #tdcCible {
+            width: 241px;
         }
+        #optiMax, #furtiMax{
+            float: left;
+            width: 250px;
+        }
+        #furtiMax{text-align: right;}
+        #niv0, #niv1, #niv2, #niv3, #niv4, #niv5 {
+            display:none;
+            border: solid 1px #aaaaaa;
+            background-color: #eeeeee;
+            padding: 5px;
+            font-size: 10px;
+            
+        }
+        #calculateurDeFlood .actif {
+            display:block;
+        }
+        #calculateurDeFlood span{
+            display: inline-block;
+            width: 25px;
+            text-align: center;
+        }
+        #selecteurDeNiveauDeDiscretion {clear:both;}
     </style>
 </head>
 <body>
     <h1>Fourmizzz Flood</h1>
     <form id="calculateurDeFlood">
-        <input placeholder="tdc du floodeur" name="tdcFlooder" required autofocus />
-        <input placeholder="tdc de la cible" name="tdcCible" required />
-        <br/>
-        ->>Remplacer par un slider entre OptiMax et FurtiMax sur 5 niveaux pour faire marcher la furtivité
-        <input type="submit" name="optiFlood" value="Flood optimisé"/>
-        <input type="submit" name="hybridFlood" value="Flood hybride" style="opacity:.7"/>
-        <input type="submit" name="furtiFlood" value="Flood anti-traçeur" style="opacity:.5"/>
+        <input placeholder="tdc du floodeur" id="tdcFloodeur" name="tdcFloodeur" required autofocus />
+        <input placeholder="tdc de la cible" id="tdcCible" name="tdcCible" required />
+        <br/><br/>
+        <div id="optiMax">Optimisation maxium</div>
+        <div id="furtiMax">Furtivité maxium</div>
+        <input type="hidden" id="niveauDeDiscretion" name="niveauDeDiscretion" value="0" />
+        <div id="selecteurDeNiveauDeDiscretion"></div>
+        
+        <div id="niv0" class="actif">Optimisateur classique, très efficace pour déplacer beaucoup de tdc en peu de temps.
+            Ceci dit, la précision des montants des flood agit comme une emprinte indélébile pour les traçeurs de tdc.
+            <br/><span>+++</span> rendemant optimal
+            <br/><span>---</span> ultra voyant
+        </div>
+        <div id="niv1">La quantité total de tdc floodé est arrondie à 2 chiffres significatif.
+            <br/><span>++</span> l'optimisation des flood reste importante
+            <br/><span>++</span> pas de surcout en nombre de flood <!-- (vous ne serais donc pas plus limité sur le nombre de cibles à flooder qu'avec les optimisateurs classique)-->
+            <br/><span>+</span>  réduit les chance d'être tracé par les scanner quotidiens
+            <br/><span>-</span>  le total à deux chiffre reste repérable par les scanner plus précis.
+            <br/><span>--</span> les flood individuel n'étant pas arrondis, les scanner ultra précis vous suivrons à la trace sans difficulté.
+        </div>
+        <div id="niv2">La quantité total de tdc floodé ainsi que le flood individuel sont arrondi à 2 chiffres significatif.
+            <br/><span>++</span> l'optimisation des flood reste importante
+            <br/><span>+</span>  réduit les chance d'être tracé par les scanner quotidiens
+            <br/><span>+</span>  peu consomateur en flood suplémentaire
+            <br/><span>-</span>  le total à deux chiffre reste repérable par les scanners plus précis.
+            <br/><span>-</span>  les scanner ultra précis n'aurons probablement pas assez de données parasite pour perdre votre trace.
+        </div>
+        <div id="niv3">La quantité total de tdc floodé est arrondie à 1 chiffres significatif.
+            <br/><span>++</span> intraçabe par les scanners quotidiens (sauf gros coup de mal chance)
+            <br/><span>++</span> pas de surcout en nombre de flood
+            <br/><span>+</span>  difficile à tracer avec des scanners à précision intermédiaire.
+            <br/><span>--</span> l'optimisation des flood est fortement réduite
+            <br/><span>--</span> les flood individuels n'étant pas arrondis, les scanner ultra précis vous suivrons à la trace sans difficulté.
+        </div>
+        <div id="niv4">La quantité total de tdc floodé est arrondie à 1 chiffres significatif et les flood individuel à 2 chiffre significatif.
+            <br/><span>++</span> intraçabe par les scanners quotidiens (sauf gros coup de mal chance)
+            <br/><span>+</span>  peu consomateur en flood suplémentaire
+            <br/><span>+</span>  difficile à tracer avec des scanners à précision intermédiaire.
+            <br/><span>--</span> l'optimisation des flood est fortement réduite
+            <br/><span>-</span>  les scanner ultra précis n'aurons probablement pas assez de données parasite pour perdre votre trace.
+        </div>
+        <div id="niv5">La quantité total de tdc floodé ainsi que le flood individuel sont arrondi à 1 chiffre significatif.
+            <br/><span>++</span> intraçabe par les scanners quotidiens (sauf gros coup de mal chance)
+            <br/><span>++</span> très peu de chance d'être repéré par les scanners à précision intermédiaire.
+            <br/><span>+</span>  peut commencer à embrouiller les scanner ultra précis (si vous avez été traçé avec ce type de flood, il y a peu de chance que ce soit avec des méthodes autorisé).
+            <br/><span>-</span>  potentiellement consomateur en flood suplémentaire
+            <br/><span>--</span> l'optimisation des flood est fortement réduite
+        </div>
+
     </form>
     <div id="espaceResultat">
     </div>
     <script>
-        $('#calculateurDeFlood').submit(function(){
+        $('#selecteurDeNiveauDeDiscretion').slider({
+            min: 0,
+            max: 5,
+            range: "min",
+            value: 0,
+            slide: function(event, ui){
+                $('#niveauDeDiscretion').attr('value', ui.value);
+                $('#calculateurDeFlood [id^="niv"]').removeClass('actif');
+                $('#niv'+ui.value).addClass('actif');
+                actualiserLeTableauDeFlood();
+            }
+        });
+        $('#tdcFloodeur, #tdcCible').bind('keyup blur change', function(){
+            actualiserLeTableauDeFlood();
+        });
+        function actualiserLeTableauDeFlood(){
             try {
-                var leFloodeur = new Fourmiliere(str2int(this.tdcFlooder.value));
-                var laCible = new Fourmiliere(str2int(this.tdcCible.value));
-                //if(this.furtiFlood.value) leFloodeur.niveauDeDiscretion = 5;
-                //if(this.hybridFlood.value) leFloodeur.niveauDeDiscretion = 3;
+                var leFloodeur = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcFloodeur'));
+                var laCible = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcCible'));
+                leFloodeur.niveauDeDiscretion = $('#niveauDeDiscretion').attr('value');
+                
                 var tdcAFlooder = leFloodeur.calculLeProchainFloodSur(laCible);
                 $('#espaceResultat').html(tdcAFlooder);
             } catch (exeption) {
                 $('#espaceResultat').html('<span class="error">'+exeption.message+'</span>');
             }
-            return false;
-        });
+        }
+        function normaliseLaValeurDuChampNumerique(idDuChamp){
+            var nombreConverti = str2int($('#'+idDuChamp).attr('value'));
+            if(nombreConverti>0){
+                $('#'+idDuChamp).attr('value',nombreConverti);
+                return nombreConverti;
+            } else throw new RangeError("tdc incorrect, merci d'entrer un nombre entier strictement positif");
+        }
     </script>
 </body>
 </html>
