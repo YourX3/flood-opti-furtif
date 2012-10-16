@@ -48,6 +48,68 @@
             text-align: center;
         }
         #selecteurDeNiveauDeDiscretion {clear:both;}
+        .tdc{text-align:right;}
+        .no-select{
+            border:none;
+            background:transparent;
+            padding:0;
+            margin:0;
+        }
+        .cm2{width:2em;}
+        .espace{width:4px;}
+        #espaceResultat * {
+            text-align: right;
+            height: 30px;
+            border-collapse:collapse;
+        }
+        #espaceResultat th {text-align: center;padding:4px;color:#888888;}
+        #espaceResultat .colonne1, #espaceResultat tbody th, #espaceResultat tfoot th {text-align: right;}
+        #espaceResultat tfoot td, #espaceResultat tfoot .tdc {text-align: center;}
+        #espaceResultat td {padding:4px;border:1px solid rgba(0,0,0,.2);}
+        #espaceResultat .colonne1,
+        #espaceResultat .colonne2,
+        #espaceResultat .colonne4
+        {
+            width:150px;
+        }
+        #espaceResultat .colonne3
+        {
+            width:50px;
+        }
+        #espaceResultat tbody .pourcentage {
+            display: inline-block;
+            width:50px;
+            padding-right:28px;
+        }
+        #espaceResultat .fleche{
+            height: auto;
+            display: inline-block;
+            text-align:center;
+            letter-spacing:-2px;
+            font-family:verdana;
+        }
+        .basGauche {
+            margin-bottom:-4px;
+            padding-left:15px;
+            padding-right:15px;
+
+        }
+        .gaucheBas {margin-bottom:-13px;}
+        
+        .tdc{
+            display: inline-block;
+            width:150px;
+            height:30px;
+            cursor: text;
+        }
+        td {
+            background-color: transparent;
+            transition: all 1s ease 0s;
+        }
+        tr:hover td[colspan]{
+            background-color: rgba(0,0,0,.05);
+            transition: all 0s ease 0s;
+        }
     </style>
 </head>
 <body>
@@ -120,26 +182,29 @@
         });
         $('#tdcFloodeur, #tdcCible').bind('keyup blur change', function(){
             actualiserLeTableauDeFlood();
+            $('.tdc').click(function(){autoSelect(this)});
         });
-        function actualiserLeTableauDeFlood(){
-            try {
-                var leFloodeur = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcFloodeur'));
-                var laCible = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcCible'));
-                leFloodeur.niveauDeDiscretion = $('#niveauDeDiscretion').attr('value');
-                
-                var tdcAFlooder = leFloodeur.calculLeProchainFloodSur(laCible);
-                $('#espaceResultat').html(tdcAFlooder);
-            } catch (exeption) {
-                $('#espaceResultat').html('<span class="error">'+exeption.message+'</span>');
-            }
-        }
-        function normaliseLaValeurDuChampNumerique(idDuChamp){
-            var nombreConverti = str2int($('#'+idDuChamp).attr('value'));
-            if(nombreConverti>0){
-                $('#'+idDuChamp).attr('value',nombreConverti);
-                return nombreConverti;
-            } else throw new RangeError("tdc incorrect, merci d'entrer un nombre entier strictement positif");
-        }
+        
+        
+
+//fonction d'auto sélection de texte
+var autoSelect = function (el) {
+  if (/textarea/i.test(el.tagName) || (/input/i.test(el.tagName) && /text/i.test(el.type))) {
+    el.select();
+  } else if (!!window.getSelection) { // FF, Safari, Chrome, Opera
+    var sel = window.getSelection();
+    var range = document.createRange();
+    range.selectNodeContents(el);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } else if (!!document.selection) { // IE
+    document.selection.empty();
+    var range = document.body.createTextRange();
+    range.moveToElementText(el);
+    range.select();
+  }
+};
+
     </script>
 </body>
 </html>
