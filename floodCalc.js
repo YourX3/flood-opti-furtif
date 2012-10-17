@@ -65,9 +65,7 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
     }
     
     this.calculLeProchainFloodSur = function (fourmiliereCible){
-        
         this.verifieSiLaCibleEstAtteignable(fourmiliereCible);
-        
         var tdcAFlooder = this.calculLeProchainFloodSommaireSur(fourmiliereCible);
         tdcAFlooder = this.optimiseLesFloodProcheDuSeuilDePortee(fourmiliereCible, tdcAFlooder);
         tdcAFlooder = this.arrondiLeFloodSelonLeNiveauDeDiscretion(tdcAFlooder);
@@ -77,11 +75,12 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
         return Math.floor(fourmiliereCible.tdc * 0.2);
     };
     this.verifieSiLaCibleEstAtteignable = function (fourmiliereCible){
-        if(fourmiliereCible.tdc <= 0.5 * this.tdc) throw RangeError('tdc de la cible <= 50% de celui du flooder');
         if(fourmiliereCible.tdc <= 50) throw RangeError('tdc de la cible <= 50');
+        if(fourmiliereCible.tdc <= 0.5 * this.tdc) throw RangeError('tdc de la cible <= 50% de celui du flooder');
         if(fourmiliereCible.tdc > 3 * this.tdc) throw RangeError('cible trop grande');
     };
     this.optimiseLesFloodProcheDuSeuilDePortee = function (fourmiliereCible, tdcAFlooder){
+        //Flood audela de la limite
         var fourmiliereCibleLimiteHorsPorte = new Fourmiliere(fourmiliereCible.tdc - 2);
         try{
             this.verifieSiLaCibleEstAtteignable(fourmiliereCibleLimiteHorsPorte);
@@ -89,6 +88,7 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
             if(exception.message == 'tdc de la cible <= 50% de celui du flooder' || exception.message == 'tdc de la cible <= 50') return tdcAFlooder;
             else throw exception;
         }
+        //Flood limite
         var fourmiliereCibleApresFlood = new Fourmiliere(fourmiliereCible.tdc - tdcAFlooder);
         var fourmiliereDuFloodeurApresFlood = new Fourmiliere(this.tdc + tdcAFlooder);
         try{
@@ -106,28 +106,97 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
         if (this.niveauDeDiscretion==2) return tronquerA_N_ChiffresSignificatif(tdcAFlooder, 2);
         return tdcAFlooder;
     };
-    this.calculLesFloodSur = function (fourmiliereCible){
-        try {
-            var listeDeFloods = new Floods();
-            $('#espaceResultat').html('');
-            while(1){
-                var tdcAFlooder = this.calculLeProchainFloodSur(fourmiliereCible);
-                this.tdc += tdcAFlooder;
-                var pourcentageDeFlood = 100 * tdcAFlooder / fourmiliereCible.tdc ;
-                fourmiliereCible.tdc -= tdcAFlooder;
-                $('#espaceResultat').append('<br/>' + this.tdc + ' <-- ' + tdcAFlooder + ' <-- ' + fourmiliereCible.tdc + ' flood de ' + pourcentageDeFlood.toFixed(2) + '%, ratio tdcCible / tdcFloodeur : ' + (Math.floor(1000*(fourmiliereCible.tdc-1)/this.tdc)/1000));
-                //console.log( );
-            }
-        } catch(exception){
-            switch (exception.message) {
-                case 'tdc de la cible <= 50% de celui du flooder':
-                case 'tdc de la cible <= 50':
-                    return listeDeFloods;
-                default: throw exception;
-            }
-        }
-    };
 }
+
+/* fonctions avec interaction dom html */
+function normaliseLaValeurDuChampNumerique(idDuChamp){
+    var nombreConverti = str2int($('#'+idDuChamp).attr('value'));
+    if(nombreConverti>0){
+        $('#'+idDuChamp).attr('value',nombreConverti);
+        return nombreConverti;
+    } else throw new RangeError("tdc incorrect, merci d'entrer un nombre entier strictement positif");
+}
+function actualiserLeTableauDeFlood(){
+    try {
+        var leFloodeur = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcFloodeur'));
+        var laCible = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcCible'));
+        leFloodeur.niveauDeDiscretion = $('#niveauDeDiscretion').attr('value');
+        var serieDeFloods = new Floods(leFloodeur, laCible);
+        serieDeFloods.enchainerLesFloods();
+        var prepareLeHtml = new GenerateurHtml(serieDeFloods);
+        $('#espaceResultat').html(prepareLeHtml.print());
+    } catch (exeption) {
+        $('#espaceResultat').html('<span class="error">'+exeption.message+'</span>');
+    }
+}
+
+
+function GenerateurHtml(serieDeFloods){
+    this.lesFloods = serieDeFloods;
+    
+    this.formatageTdc = function(tdcNumerique){
+        var tdcDecoupeeParMillier = decoupeLeNombreParSerieDe_N_Chiffre(tdcNumerique,3);
+        return '<span class="tdc">' + tdcDecoupeeParMillier.join('<input disabled value="." class="no-select espace"/>') + '<input disabled value="cm²" class="no-select cm2"/></span>' ;
+    }
+    this.formatageRatio = function(ratio){
+        return '<span class="ratio">' + ratio.toFixed(4).toString().replace('.',',') + '</span>' ;
+    }
+    this.formatagePourcentage = function(pourcentage){
+        return '<span class="pourcentage">' + pourcentage.toFixed(2).toString().replace('.',',') + '%</span>' ;
+    }
+    this.formatagePourcentageGain = function(pourcentage){
+        return '<span class="pourcentage">+' + pourcentage.toFixed(0) + '%</span>' ;
+    }
+    this.formatagePourcentagePerte = function(pourcentage){
+        return '<span class="pourcentage">-' + pourcentage.toFixed(0) + '%</span>' ;
+    }
+    this.titreEtape = function(numeroEtape){
+        var nombreDEtape = this.lesFloods.nombreDeFlood();
+        if(!numeroEtape) return 'TdC de départ';
+        if(nombreDEtape==numeroEtape) return 'TdC final';
+        return ''; 
+    }
+    this.titreFlood = function(numeroEtape){
+        var nombreDEtapes = this.lesFloods.nombreDeFlood();
+        if(numeroEtape == nombreDEtapes && this.lesFloods.ratio(numeroEtape) > 0.5) return 'Flood limite';
+        if(numeroEtape < nombreDEtapes && this.lesFloods.ratio(numeroEtape+1) < 0.5) return 'Flood limite';
+        return 'Flood ' + numeroEtape; 
+    }
+    this.entete = function(){
+        return '<table><thead><tr><th class="colonne1"></th><th class="colonne2">TdC du floodeur</th><th class="colonne3" title="cible atteingable entre 3 et 0,5 de ratio">Ratio</th><th class="colonne4">TdC de la cible</th></tr></thead><tbody>'+this.etape(0);
+    }
+    this.etape = function(numeroEtat){
+        var nombreDEtape = this.lesFloods.nombreDeFlood();
+        var couleur1 = 100 - 20*numeroEtat/nombreDEtape;
+        var couleur2 = 80 + 20*numeroEtat/nombreDEtape;
+        return '<tr><th>' + this.titreEtape(numeroEtat) + '</th><td style="background-color:rgb('+couleur1+'%,'+couleur2+'%,80%);">' + this.formatageTdc(this.lesFloods.etatsDufloodeur[numeroEtat].tdc) + '</td><td>' + this.formatageRatio(this.lesFloods.ratio(numeroEtat)) + '</td><td style="background-color:rgb('+couleur2+'%,'+couleur1+'%,80%);">' + this.formatageTdc(this.lesFloods.etatsDeLaCible[numeroEtat].tdc) + '</td></tr>';
+    }
+    this.flood = function(numeroEtat){
+        var titreFlood = this.titreFlood(numeroEtat);
+        var classFloodLimite='';
+        if(titreFlood == 'Flood limite') classFloodLimite=' class="floodLimite" ';
+        return '<tr'+classFloodLimite+'><th>' + titreFlood + '</th><td colspan="3"><img class="fleche gaucheBas" src="flecheGaucheBas.png" alt="&lt;--"/><strong>' + this.formatageTdc(this.lesFloods.floods[numeroEtat]) + '</strong><img class="fleche basGauche" src="flecheBasGauche.png" alt="&lt;--"/>' + this.formatagePourcentage(this.lesFloods.pourcentageDeFlood(numeroEtat)) + '</td></tr>';
+    }
+    this.total = function(){
+        var pourcentageDeGainFloodeur = 100 * this.lesFloods.etatsDufloodeur[this.lesFloods.etatsDufloodeur.length-1].tdc/this.lesFloods.etatsDufloodeur[0].tdc - 100;
+        var pourcentageDePertCible =  100 - 100 * this.lesFloods.etatsDeLaCible[this.lesFloods.etatsDeLaCible.length-1].tdc/this.lesFloods.etatsDeLaCible[0].tdc;
+        return '</tbody><tfoot><tr><th>Total</th><td colspan="3">' + this.formatagePourcentageGain(pourcentageDeGainFloodeur) + this.formatageTdc(this.lesFloods.floods.sum()) + this.formatagePourcentagePerte(pourcentageDePertCible) + '</td>';
+    }
+    this.fermeture = function(){
+        return this.total() + '</table>';
+    }
+    
+    this.print = function(){
+        
+        var html = this.entete();
+        for (var etape = 1; etape < this.lesFloods.floods.length; etape++) {
+            html += this.flood(etape) + this.etape(etape);
+        }
+        return html + this.fermeture();
+    }
+}
+
+/* fonctions générique : conversion, formatage... */
 function tronquerA_N_ChiffresSignificatif(nombreATronquer, chiffreSignificatif){
     if( chiffreSignificatif<=0 || !parseInt(chiffreSignificatif,10) ) throw new Error('le nombre de chiffres significatifs doit être un entier strictement superieur à 0');
     var diviseur = nombreDeChiffreDansCeNombre(nombreATronquer)-chiffreSignificatif;
@@ -165,81 +234,4 @@ function str2int(str){
     str = supprimeLesEspaces(str);
     str = convertiLesPrefixesNumeriqueEnNombre(str);
     return parseInt( str.replace(/[^0-9.,]/g,''), 10);
-}
-
-
-/* fonctions avec interaction dom html */
-function normaliseLaValeurDuChampNumerique(idDuChamp){
-    var nombreConverti = str2int($('#'+idDuChamp).attr('value'));
-    if(nombreConverti>0){
-        $('#'+idDuChamp).attr('value',nombreConverti);
-        return nombreConverti;
-    } else throw new RangeError("tdc incorrect, merci d'entrer un nombre entier strictement positif");
-}
-function actualiserLeTableauDeFlood(){
-    try {
-        var leFloodeur = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcFloodeur'));
-        var laCible = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcCible'));
-        leFloodeur.niveauDeDiscretion = $('#niveauDeDiscretion').attr('value');
-        var serieDeFloods = new Floods(leFloodeur, laCible);
-        serieDeFloods.enchainerLesFloods();
-        var prepareLeHtml = new GenerateurHtml(serieDeFloods);
-        $('#espaceResultat').html(prepareLeHtml.print());
-    } catch (exeption) {
-        $('#espaceResultat').html('<span class="error">'+exeption.message+'</span>');
-    }
-}
-
-
-function GenerateurHtml(serieDeFloods){
-    this.lesFloods = serieDeFloods;
-    
-    this.formatageTdc = function(tdcNumerique){
-        var tdcDecoupeeParMillier = decoupeLeNombreParSerieDe_N_Chiffre(tdcNumerique,3);
-        return '<span class="tdc">' + tdcDecoupeeParMillier.join('<input disabled value="." class="no-select espace"/>') + '<input disabled value="cm2" class="no-select cm2"/></span>' ;
-    }
-    this.formatageRatio = function(ratio){
-        return '<span class="ratio">' + ratio.toFixed(4) + '</span>' ;
-    }
-    this.formatagePourcentage = function(pourcentage){
-        return '<span class="pourcentage">' + pourcentage.toFixed(2) + '%</span>' ;
-    }
-    this.formatagePourcentageGain = function(pourcentage){
-        return '<span class="pourcentage">+' + pourcentage.toFixed(0) + '%</span>' ;
-    }
-    this.formatagePourcentagePerte = function(pourcentage){
-        return '<span class="pourcentage">-' + pourcentage.toFixed(0) + '%</span>' ;
-    }
-    this.entete = function(){
-        return '<table><thead><tr><th class="colonne1">Etapes</th><th class="colonne2">TdC Floodeur</th><th class="colonne3" title="cible atteingable entre 3 et 0,5 de ratio">Ratio</th><th class="colonne4">TdC cible</th></tr></thead><tbody>'+this.etape(0);
-    }
-    this.etape = function(numeroEtat){
-        var nomEtape;
-        if(!numeroEtat) nomEtape = 'Départ';
-        else nomEtape = 'Après le flood ' + numeroEtat;
-        var nombreDEtape = this.lesFloods.nombreDeFlood();
-        var couleur1 = 100 - 20*numeroEtat/nombreDEtape;
-        var couleur2 = 80 + 20*numeroEtat/nombreDEtape;
-        return '<tr><th>' + nomEtape + '</th><td style="background-color:rgb('+couleur1+'%,'+couleur2+'%,80%);">' + this.formatageTdc(this.lesFloods.etatsDufloodeur[numeroEtat].tdc) + '</td><td>' + this.formatageRatio(this.lesFloods.ratio(numeroEtat)) + '</td><td style="background-color:rgb('+couleur2+'%,'+couleur1+'%,80%);">' + this.formatageTdc(this.lesFloods.etatsDeLaCible[numeroEtat].tdc) + '</td></tr>';
-    }
-    this.flood = function(numeroEtat){
-        return '<tr><th>Flood ' + numeroEtat + '</th><td colspan="3"><img class="fleche gaucheBas" src="flecheGaucheBas.png" alt="&lt;--"/><strong>' + this.formatageTdc(this.lesFloods.floods[numeroEtat]) + '</strong><img class="fleche basGauche" src="flecheBasGauche.png" alt="&lt;--"/>' + this.formatagePourcentage(this.lesFloods.pourcentageDeFlood(numeroEtat)) + '</td></tr>';
-    }
-    this.total = function(){
-        var pourcentageDeGainFloodeur = 100 * this.lesFloods.etatsDufloodeur[this.lesFloods.etatsDufloodeur.length-1].tdc/this.lesFloods.etatsDufloodeur[0].tdc - 100;
-        var pourcentageDePertCible =  100 - 100 * this.lesFloods.etatsDeLaCible[this.lesFloods.etatsDeLaCible.length-1].tdc/this.lesFloods.etatsDeLaCible[0].tdc;
-        return '</tbody><tfoot><tr><th>TdC flood&eacute; au total</th><td colspan="3">' + this.formatagePourcentageGain(pourcentageDeGainFloodeur) + this.formatageTdc(this.lesFloods.floods.sum()) + this.formatagePourcentagePerte(pourcentageDePertCible) + '</td>';
-    }
-    this.fermeture = function(){
-        return this.total() + '</table>';
-    }
-    
-    this.print = function(){
-        
-        var html = this.entete();
-        for (var etape = 1; etape < this.lesFloods.floods.length; etape++) {
-            html += this.flood(etape) + this.etape(etape);
-        }
-        return html + this.fermeture();
-    }
 }

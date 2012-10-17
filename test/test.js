@@ -115,17 +115,26 @@ describe("Dans l'applicatif métier on trouve :", function() {
         it("flood 20% du tdc cible", function() {
             expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(20);
         });
-        it("si la cible se retrouve hors porté après un flood, réduire le flood en conséquence", function() {
+        it("si la cible se retrouve hors porté après un flood, réduire le flood pour rester tout juste à portée", function() {
+            leFloodeur.tdc = 12320;
+            laCible.tdc = 7680;
+            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(1012);
+
+            leFloodeur.tdc = 24640;
+            laCible.tdc = 15360;
+            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(2026);
+
             leFloodeur.tdc = 999;
             laCible.tdc = 550;
             expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(33);
+            
             leFloodeur.tdc = 80;
             laCible.tdc = 55;
-            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(9);
+            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(4);
+            
             leFloodeur.tdc = 953154136;
             laCible.tdc = 489209281;
             expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(8421474);
-            
         });
         it("si la cible est déjà presque hors porté, la flooder de 20%", function() {
             leFloodeur.tdc = 999;
@@ -162,31 +171,6 @@ describe("Dans l'applicatif métier on trouve :", function() {
             leFloodeur.niveauDeDiscretion=0
             expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(191097375);
             
-        });
-    });
-    describe("Un optimisateur de flood complet", function() {
-        var leFloodeur;
-        var laCible;
-        beforeEach(function() {
-            leFloodeur = new Fourmiliere(486876541, 0);
-            laCible = new Fourmiliere(955486876);
-        });
-        it("qui retourne un objet Floods", function() {
-            expect(typeof(leFloodeur.calculLesFloodSur(laCible))).toBe(typeof(new Floods()));
-        });
-        /*
-        it("qui flood tant que la cible est à portée", function() {
-            expect(leFloodeur.calculLesFloodSur(laCible)).toBe(new Flood());
-        });
-        it("qui arrondissant chaque flood selon le niveau de discretion", function() {
-        });
-        it("qui arrondissant le total de la série de flood", function() {
-        });
-        */
-        it("qui laisse leFloodeur et laCible au tdc final", function() {
-            leFloodeur.calculLesFloodSur(laCible);
-            expect(leFloodeur.tdc).toBe(1057733171);
-            expect(laCible.tdc).toBe(384630246);
         });
     });
     describe("Un gestionnaire de floods", function() {
@@ -354,20 +338,41 @@ describe("Dans l'interface", function() {
             expect( typeof(new GenerateurHtml(serieDeFloods)) ).toBe( typeof(new Object()) );
         });
         it("présente le tdc de façon lisible", function() {
-            expect(generateurDeHtml.formatageTdc(6575198765)).toBe( '<span class="tdc">6<input disabled value="." class="no-select espace"/>575<input disabled value="." class="no-select espace"/>198<input disabled value="." class="no-select espace"/>765<input disabled value="cm2" class="no-select cm2"/></span>' );
+            expect(generateurDeHtml.formatageTdc(6575198765)).toBe( '<span class="tdc">6<input disabled value="." class="no-select espace"/>575<input disabled value="." class="no-select espace"/>198<input disabled value="." class="no-select espace"/>765<input disabled value="cm²" class="no-select cm2"/></span>' );
         });
         it("présente le ratio de façon lisible", function() {
-            expect(generateurDeHtml.formatageRatio(2.01006001005)).toBe( '<span class="ratio">2.0101</span>' );
+            expect(generateurDeHtml.formatageRatio(2.01006001005)).toBe( '<span class="ratio">2,0101</span>' );
         });
+        it("retourne un titre d'étape pour l'état de départ", function() {
+            expect(generateurDeHtml.titreEtape(0)).toBe('TdC de départ');
+        });
+        it("retourne un titre d'étape pour l'état finale", function() {
+            expect(generateurDeHtml.titreEtape(5)).toBe('TdC final');
+        });
+        it("ne retourne aucun titre pour les autres étapes", function() {
+            expect(generateurDeHtml.titreEtape(1)).toBe('');
+            expect(generateurDeHtml.titreEtape(2)).toBe('');
+            expect(generateurDeHtml.titreEtape(3)).toBe('');
+        });
+        it("retourne un titre de Flood numéroté pour chaque flood", function() {
+            expect(generateurDeHtml.titreFlood(1)).toBe('Flood 1');
+            expect(generateurDeHtml.titreFlood(2)).toBe('Flood 2');
+            expect(generateurDeHtml.titreFlood(3)).toBe('Flood 3');
+            expect(generateurDeHtml.titreFlood(5)).toBe('Flood 5');
+        });
+        it("retourne le titre Flood limite pour le flood qui arrive à la limite de tdc.", function() {
+            expect(generateurDeHtml.titreFlood(4)).toBe('Flood limite');
+        });
+        /* tests peu pertinant
         it("ajoute une ligne d'étape", function() {    
-            expect(generateurDeHtml.etape(0) ).toBe( '<tr><th>Départ</th><td><span class="tdc">486<input disabled value="." class="no-select espace"/>876<input disabled value="." class="no-select espace"/>541<input disabled value="cm2" class="no-select cm2"/></span></td><td><span class="ratio">1.9625</span></td><td><span class="tdc">955<input disabled value="." class="no-select espace"/>486<input disabled value="." class="no-select espace"/>876<input disabled value="cm2" class="no-select cm2"/></span></td></tr>' );
+            expect(generateurDeHtml.etape(0) ).toBe( '<tr><th>Départ</th><td style="background-color:rgb(100%,80%,80%);"><span class="tdc">486<input disabled value="." class="no-select espace"/>876<input disabled value="." class="no-select espace"/>541<input disabled value="cm2" class="no-select cm2"/></span></td><td><span class="ratio">1.9625</span></td><td style="background-color:rgb(80%,100%,80%);"><span class="tdc">955<input disabled value="." class="no-select espace"/>486<input disabled value="." class="no-select espace"/>876<input disabled value="cm2" class="no-select cm2"/></span></td></tr>' );
             
-            expect(generateurDeHtml.etape(1) ).toBe( '<tr><th>Après le flood 1</th><td><span class="tdc">677<input disabled value="." class="no-select espace"/>973<input disabled value="." class="no-select espace"/>916<input disabled value="cm2" class="no-select cm2"/></span></td><td><span class="ratio">1.1275</span></td><td><span class="tdc">764<input disabled value="." class="no-select espace"/>389<input disabled value="." class="no-select espace"/>501<input disabled value="cm2" class="no-select cm2"/></span></td></tr>' );
+            expect(generateurDeHtml.etape(1) ).toBe( '<tr><th>Après le flood 1</th><td style="background-color:rgb(96%,84%,80%);"><span class="tdc">677<input disabled value="." class="no-select espace"/>973<input disabled value="." class="no-select espace"/>916<input disabled value="cm2" class="no-select cm2"/></span></td><td><span class="ratio">1.1275</span></td><td style="background-color:rgb(84%,96%,80%);"><span class="tdc">764<input disabled value="." class="no-select espace"/>389<input disabled value="." class="no-select espace"/>501<input disabled value="cm2" class="no-select cm2"/></span></td></tr>' );
         });
         it("ajoute les entêtes du tableau de floods", function() {    
-            expect(generateurDeHtml.entete() ).toBe( '<table><thead><tr><th class="colonne1">Etapes</th><th class="colonne2">TdC Floodeur</th><th class="colonne3" title="cible atteingable entre 3 et 0,5 de ratio">Ratio</th><th class="colonne4">TdC cible</th></tr></thead><tr><th>Départ</th><td><span class="tdc">486<input disabled value="." class="no-select espace"/>876<input disabled value="." class="no-select espace"/>541<input disabled value="cm2" class="no-select cm2"/></span></td><td><span class="ratio">1.9625</span></td><td><span class="tdc">955<input disabled value="." class="no-select espace"/>486<input disabled value="." class="no-select espace"/>876<input disabled value="cm2" class="no-select cm2"/></span></td></tr>' );
+            expect(generateurDeHtml.entete() ).toBe( '<table><thead><tr><th class="colonne1">Etapes</th><th class="colonne2">TdC Floodeur</th><th class="colonne3" title="cible atteingable entre 3 et 0,5 de ratio">Ratio</th><th class="colonne4">TdC cible</th></tr></thead><tbody><tr><th>Départ</th><td style="background-color:rgb(100%,80%,80%);"><span class="tdc">486<input disabled value="." class="no-select espace"/>876<input disabled value="." class="no-select espace"/>541<input disabled value="cm2" class="no-select cm2"/></span></td><td><span class="ratio">1.9625</span></td><td style="background-color:rgb(80%,100%,80%);"><span class="tdc">955<input disabled value="." class="no-select espace"/>486<input disabled value="." class="no-select espace"/>876<input disabled value="cm2" class="no-select cm2"/></span></td></tr>' );
         });
-        
+        */
 /*        it("ajoute les entêtes du tableau de floods", function() {    
             expect( typeof(new Afficheur(serieDeFloods)) ).toBe( typeof(new Object()) );
         });
