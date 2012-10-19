@@ -21,6 +21,85 @@ function Floods(leFloodeur, laCible){
                 default: throw exception;
             }
         }
+        this.arrondiLeTotalDeFloods();
+    }
+    this.arrondiLeTotalDeFloods = function(){ //FIXME : a refactoriser et tester intensivement
+        var niveauDeDiscretion =  this.etatsDufloodeur[0].niveauDeDiscretion;
+        if (!niveauDeDiscretion || niveauDeDiscretion==0) return;
+        var chiffreSignificatif = 2;
+        if (niveauDeDiscretion>=3) chiffreSignificatif = 1;
+        var totalDiscret = tronquerA_N_ChiffresSignificatif(this.totalFloods(), chiffreSignificatif);
+        
+        if(niveauDeDiscretion == 1 || niveauDeDiscretion == 3) var floodIndividuelsArrondi = false;
+        else var floodIndividuelsArrondi = true;
+        if (floodIndividuelsArrondi) while ( this.totalFloods()>totalDiscret || nombreDeChiffreDansCeNombre(totalDiscret) -1 > nombreDeChiffreDansCeNombre(this.getFlood(this.nombreDeFlood())) ) this.supprimeLeDernierFlood();
+        else while ( this.totalFloods()>totalDiscret ) this.supprimeLeDernierFlood();
+        
+        nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[this.nombreDeFlood()]);
+        nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+        this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+        if (this.totalFloods()>=totalDiscret) {
+            var tdcTropPercu = this.totalFloods() - totalDiscret;
+            var nouveauMontantFlood = this.getFlood(this.nombreDeFlood()) - tdcTropPercu;
+            nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+            this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+        } else {
+            this.supprimeLeDernierFlood();
+            this.flood();
+            nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[this.nombreDeFlood()]);
+            nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+            this.setFlood(this.nombreDeFlood()+1, nouveauMontantFlood);
+            if (this.totalFloods()>=totalDiscret) {
+                var tdcTropPercu = this.totalFloods() - totalDiscret;
+                var nouveauMontantFlood = this.getFlood(this.nombreDeFlood()) - tdcTropPercu;
+                nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+                this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+            } //else this.arrondiLeTotalDeFloods();
+        }
+        /*
+        while (this.totalFloods()>totalDiscret) {
+            var tdcTropPercu = this.totalFloods() - totalDiscret;
+            if (tdcTropPercu>this.getFlood(this.nombreDeFlood())){
+                this.supprimeLeDernierFlood();
+            } else {
+                var nouveauMontantFlood = this.getFlood(this.nombreDeFlood()) - tdcTropPercu;
+                nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+                this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+                if (this.totalFloods()<totalDiscret){
+                    this.supprimeLeDernierFlood();
+                    while (nombreDeChiffreDansCeNombre(totalDiscret) -1 > nombreDeChiffreDansCeNombre(this.getFlood(this.nombreDeFlood()))) this.supprimeLeDernierFlood();
+                    nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[this.nombreDeFlood()]);
+                    nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+                    this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+                }
+            }
+            
+        }
+        
+        
+        while (this.totalFloods()>totalDiscret) {
+            var tdcTropPercu = this.totalFloods() - totalDiscret;
+            if (tdcTropPercu>this.getFlood(this.nombreDeFlood())){
+                this.supprimeLeDernierFlood();
+            } else {
+                var nouveauMontantFlood = this.getFlood(this.nombreDeFlood()) - tdcTropPercu;
+                nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+                this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+                if (this.totalFloods()<totalDiscret){
+                    this.supprimeLeDernierFlood();
+                    while (nombreDeChiffreDansCeNombre(totalDiscret) -1 > nombreDeChiffreDansCeNombre(this.getFlood(this.nombreDeFlood()))) this.supprimeLeDernierFlood();
+                    nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[this.nombreDeFlood()]);
+                    nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+                    this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+                }
+            }
+            
+        }
+        */
+        
+    }
+    this.totalFloods = function (){
+        return this.floods.sum();
     }
     this.flood = function (){
         var tdcAFlooder = this.etatsDufloodeur.last().calculLeProchainFloodSur(this.etatsDeLaCible.last());
@@ -34,6 +113,16 @@ function Floods(leFloodeur, laCible){
     }
     this.getFlood = function (numeroDuFlood){
         return this.floods[numeroDuFlood];
+    }
+    this.setFlood = function (numeroDuFlood, tdc){
+        this.floods[numeroDuFlood] = tdc;
+        this.mettreAJourFloodeur(numeroDuFlood);
+        this.mettreAJourCible(numeroDuFlood);
+    }
+    this.supprimeLeDernierFlood = function(){
+        this.floods.pop();
+        this.etatsDufloodeur.pop();
+        this.etatsDeLaCible.pop();
     }
     this.mettreAJourFloodeur = function(numeroEtat){
         var floodeurApresFlood = this.etatsDufloodeur[numeroEtat-1].clone();

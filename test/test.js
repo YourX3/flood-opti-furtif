@@ -282,32 +282,111 @@ describe("Dans l'applicatif métier on trouve :", function() {
             expect(serieDeFloods.pourcentageDeFlood(4)).toBeLessThan(19);//seuil
             expect(serieDeFloods.pourcentageDeFlood(5)).toBeGreaterThan(19.99);
         });
-
-        /*
-        it("qui affiche son contenu en tableau html", function() {
-        });        
-        */
+        it("qui peut écraser la quantité de tdc floodé lors d'une flood", function() {
+            serieDeFloods.enchainerLesFloods();
+            var floodArbitraire = 10000;
+            serieDeFloods.setFlood(3, floodArbitraire);
+            expect(serieDeFloods.getFlood(3)).toBe(floodArbitraire);
+        });
+        it("qui peut mettre à jour les niveau de fourmilière après un flood donné", function() {
+            serieDeFloods.enchainerLesFloods();
+            var floodArbitraire = 10000;
+            serieDeFloods.setFlood(3, floodArbitraire);
+            expect(serieDeFloods.etatsDufloodeur[3].tdc).toBe(serieDeFloods.etatsDufloodeur[2].tdc + floodArbitraire);
+            expect(serieDeFloods.etatsDeLaCible[3].tdc).toBe(serieDeFloods.etatsDeLaCible[2].tdc - floodArbitraire);
+        });
+        describe("qui peut supprimer la dernière étape complète :", function() {
+            beforeEach(function() {
+                leFloodeur = new Fourmiliere(486876541, 0);
+                laCible = new Fourmiliere(955486876);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+            });
+            it("au niveau du flood", function() {
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.nombreDeFlood()).toBe(5);
+                serieDeFloods.supprimeLeDernierFlood();
+                expect(serieDeFloods.nombreDeFlood()).toBe(4);
+            });
+            it("au niveau des états de fourmilière floodeuse", function() {
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.etatsDufloodeur.length).toBe(6);
+                serieDeFloods.supprimeLeDernierFlood();
+                expect(serieDeFloods.etatsDufloodeur.length).toBe(5);
+            });
+            it("au niveau des états de fourmilière cible", function() {
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.etatsDeLaCible.length).toBe(6);
+                serieDeFloods.supprimeLeDernierFlood();
+                expect(serieDeFloods.etatsDeLaCible.length).toBe(5);
+            });
+        });
+        describe("qui peut ajuster le total d'une série de flood pour tomber sur un chiffre rond", function() {
+            it("à 2 chiffres significatif", function() {
+                leFloodeur = new Fourmiliere(486876541, 1);
+                laCible = new Fourmiliere(955486876);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.floods.sum()).toBe(570000000);
+            });
+            it("à 2 chiffres significatif, avec des flood individuel arrondi à 2 chiffres significatif", function() {
+                leFloodeur = new Fourmiliere(486876541, 2);
+                laCible = new Fourmiliere(955486876);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.floods.sum()).toBe(570000000);
+                for (var numeroDuFlood=1; numeroDuFlood<=serieDeFloods.nombreDeFlood();numeroDuFlood++){
+                    expect(serieDeFloods.getFlood(numeroDuFlood)).toBe( tronquerA_N_ChiffresSignificatif(serieDeFloods.getFlood(numeroDuFlood),2) );
+                }
+            });
+            it("à 1 chiffre significatif", function() {
+                leFloodeur = new Fourmiliere(486876541, 3);
+                laCible = new Fourmiliere(955486876);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.floods.sum()).toBe(500000000);
+            });
+            it("à 1 chiffre significatif, avec des flood individuel arrondi à 2 chiffres significatif", function() {
+                leFloodeur = new Fourmiliere(486876541, 4);
+                laCible = new Fourmiliere(955486876);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.floods.sum()).toBe(500000000);
+                for (var numeroDuFlood=1; numeroDuFlood<=serieDeFloods.nombreDeFlood();numeroDuFlood++){
+                    expect(serieDeFloods.getFlood(numeroDuFlood)).toBe( tronquerA_N_ChiffresSignificatif(serieDeFloods.getFlood(numeroDuFlood),2) );
+                }
+            });
+            it("à 1 chiffre significatif, avec des flood individuel arrondi à 1 chiffre significatif", function() {
+                leFloodeur = new Fourmiliere(486876541, 5);
+                laCible = new Fourmiliere(955486876);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.floods.sum()).toBe(500000000);
+                for (var numeroDuFlood=1; numeroDuFlood<=serieDeFloods.nombreDeFlood();numeroDuFlood++){
+                    expect(serieDeFloods.getFlood(numeroDuFlood)).toBe( tronquerA_N_ChiffresSignificatif(serieDeFloods.getFlood(numeroDuFlood),2) );
+                }
+            });
+        });
     });
 });
 
 
 describe("Dans l'interface", function() {
-    describe("Les champs de saisie de la page html normalisent les données fournies par l'utilisateur", function() {
+    describe("Les champs de saisie de la page html", function() {
         beforeEach(function(){
             //jasmine.getFixtures().fixturesPath = '.';
             //loadFixtures('../index.html');
             setFixtures('<input id="tdcFloodeur" value="50 000 000 cm²" /><input id="tdcCible" value="120 000 000 cm²" />');
         });
-        it("puis mettent à jour le champ", function() {
-            normaliseLaValeurDuChampNumerique('tdcFloodeur');
-            expect($('#tdcFloodeur').attr('value')).toBe('50000000');
-        });
-        it("puis retroune le resultat normalisé", function() {
+        it("normalisent les données fournies par l'utilisateur", function() {
             expect(normaliseLaValeurDuChampNumerique('tdcFloodeur')).toBe(50000000);
             expect(normaliseLaValeurDuChampNumerique('tdcCible')).toBe(120000000);
             //??expect('keyup').toHaveBeenTriggeredOn("#calculateurDeFlood [required]");
         });
-        it("ou lance une exeption si aucun nombre valide n'est fourni", function() {
+        it("s'autocorrigent en normalisant leur données", function() {
+            normaliseLaValeurDuChampNumerique('tdcFloodeur');
+            expect($('#tdcFloodeur').attr('value')).toBe('50000000');
+        });
+        it("lancent une exeption si aucun nombre valide n'est fourni", function() {
             $('#tdcFloodeur').attr('value', 'je raconte ma vie !');
             expect(function(){normaliseLaValeurDuChampNumerique('tdcFloodeur');}).toThrow("tdc incorrect, merci d'entrer un nombre entier strictement positif");
         });

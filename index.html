@@ -170,6 +170,7 @@
     <div id="espaceResultat">
     </div>
     <script>
+    $(document).ready(function(){
         $('#selecteurDeNiveauDeDiscretion').slider({
             min: 0,
             max: 5,
@@ -186,8 +187,7 @@
             actualiserLeTableauDeFlood();
             $('.tdc').click(function(){autoSelect(this)});
         });
-        
-        
+    });
 
 //fonction d'auto sélection de texte
 var autoSelect = function (el) {
