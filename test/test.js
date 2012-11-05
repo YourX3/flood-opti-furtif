@@ -223,7 +223,6 @@ describe("Dans l'applicatif métier on trouve :", function() {
             serieDeFloods = new Floods(leFloodeur, laCible);
             expect(serieDeFloods.ratio()).toBe(2);
         });
-        
         it("(vérification de la précision de l'algo de flood optimisé sur des gros flood)", function() {
             serieDeFloods.enchainerLesFloods();
             expect(serieDeFloods.ratio(0)).toBeGreaterThan(1.9);
@@ -365,6 +364,43 @@ describe("Dans l'applicatif métier on trouve :", function() {
                     expect(serieDeFloods.getFlood(numeroDuFlood)).toBe( tronquerA_N_ChiffresSignificatif(serieDeFloods.getFlood(numeroDuFlood),2) );
                 }
             });
+            it("quand le flood commence proche de la limite de portée", function() {
+                leFloodeur = new Fourmiliere(119124934, 0);
+                laCible = new Fourmiliere(59596550);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.totalFloods()).toBe(11937486);
+
+                leFloodeur = new Fourmiliere(119124934, 1);
+                laCible = new Fourmiliere(59596550);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.totalFloods()).toBe(11000000);
+                
+                leFloodeur = new Fourmiliere(119124934, 2);
+                laCible = new Fourmiliere(59596550);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.totalFloods()).toBe(11000000);
+                
+                leFloodeur = new Fourmiliere(119124934, 3);
+                laCible = new Fourmiliere(59596550);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.totalFloods()).toBe(10000000);
+                
+                leFloodeur = new Fourmiliere(119124934, 4);
+                laCible = new Fourmiliere(59596550);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                
+                expect(serieDeFloods.totalFloods()).toBe(10000000);
+                leFloodeur = new Fourmiliere(119124934, 5);
+                laCible = new Fourmiliere(59596550);
+                serieDeFloods = new Floods(leFloodeur, laCible);
+                serieDeFloods.enchainerLesFloods();
+                expect(serieDeFloods.totalFloods()).toBe(10000000);
+            });        
         });
     });
 });

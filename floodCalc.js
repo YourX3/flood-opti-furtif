@@ -25,37 +25,70 @@ function Floods(leFloodeur, laCible){
     }
     this.arrondiLeTotalDeFloods = function(){ //FIXME : a refactoriser et tester intensivement
         var niveauDeDiscretion =  this.etatsDufloodeur[0].niveauDeDiscretion;
+        //full opti sans arrondi, rien à faire dans cette méthode. On sort directe
         if (!niveauDeDiscretion || niveauDeDiscretion==0) return;
+        //détermine la précision de l'arrondi selon le niveau de discretion
         var chiffreSignificatif = 2;
         if (niveauDeDiscretion>=3) chiffreSignificatif = 1;
+        // calcul l'objectif de flood tdc arrondi
         var totalDiscret = tronquerA_N_ChiffresSignificatif(this.totalFloods(), chiffreSignificatif);
         
+        // ajustement des arrondi individuel par flood.
         if(niveauDeDiscretion == 1 || niveauDeDiscretion == 3) var floodIndividuelsArrondi = false;
         else var floodIndividuelsArrondi = true;
-        if (floodIndividuelsArrondi) while ( this.totalFloods()>totalDiscret || nombreDeChiffreDansCeNombre(totalDiscret) -1 > nombreDeChiffreDansCeNombre(this.getFlood(this.nombreDeFlood())) ) this.supprimeLeDernierFlood();
+        
+        //supprime les flood qui sortent des critères d'arrondis globaux
+        if (floodIndividuelsArrondi) while (
+                this.totalFloods()>totalDiscret
+            ||  (
+                    nombreDeChiffreDansCeNombre(totalDiscret) -1 > nombreDeChiffreDansCeNombre(this.getFlood(this.nombreDeFlood()))
+                &&  this.nombreDeFlood() >1 
+                )
+            
+            ) this.supprimeLeDernierFlood();
         else while ( this.totalFloods()>totalDiscret ) this.supprimeLeDernierFlood();
         
-        nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[this.nombreDeFlood()]);
-        nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
-        this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
+        // recalcul le flood sur la base d'un flood à 20% chiffre arrondi, mais pas limité par la proximité du seuil de porté.
+        var derniereEtape = this.nombreDeFlood();
+        nouveauMontantFlood = this.etatsDufloodeur[derniereEtape].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[derniereEtape]);
+        nouveauMontantFlood = this.etatsDufloodeur[derniereEtape].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+        this.setFlood(derniereEtape, nouveauMontantFlood);
+        
+        // si avec ce flood ajouté, c'est trop on retire le surplus,
+        //TODO: une fois allégé, on devrait espérer que l'arrondi tombe juste, au niveau global.
+        //en attendant, rien ne le garanti (pas de test pour reproduire des situations à bug).
         if (this.totalFloods()>=totalDiscret) {
             var tdcTropPercu = this.totalFloods() - totalDiscret;
             var nouveauMontantFlood = this.getFlood(this.nombreDeFlood()) - tdcTropPercu;
             nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
             this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
         } else {
+            //si le dernier flood acutel ne suffit pas à atteindre l'objectif on le supprime pour un nouveau classique (qui ne passe pas le seuil)
             this.supprimeLeDernierFlood();
             this.flood();
-            nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[this.nombreDeFlood()]);
-            nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+            
+            // puis, comme ligne 51, on recalcul le flood sur la base d'un flood à 20% chiffre arrondi, mais pas limité par la proximité du seuil de porté.
+            var derniereEtape = this.nombreDeFlood();
+            nouveauMontantFlood = this.etatsDufloodeur[derniereEtape].calculLeProchainFloodSommaireSur(this.etatsDeLaCible[derniereEtape]);
+            nouveauMontantFlood = this.etatsDufloodeur[derniereEtape].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
+            // et on ajoute ce flood dosé.
             this.setFlood(this.nombreDeFlood()+1, nouveauMontantFlood);
+            
+            
+            //cf ligne 57 : si avec ce flood ajouté, c'est trop on retire le surplus,
+            //TODO: une fois allégé, on devrait espérer que l'arrondi tombe juste, au niveau global.
+            //en attendant, rien ne le garanti (pas de test pour reproduire des situations à bug).
             if (this.totalFloods()>=totalDiscret) {
                 var tdcTropPercu = this.totalFloods() - totalDiscret;
                 var nouveauMontantFlood = this.getFlood(this.nombreDeFlood()) - tdcTropPercu;
                 nouveauMontantFlood = this.etatsDufloodeur[this.nombreDeFlood()].arrondiLeFloodSelonLeNiveauDeDiscretion(nouveauMontantFlood);
                 this.setFlood(this.nombreDeFlood(), nouveauMontantFlood);
             } //else this.arrondiLeTotalDeFloods();
+            //FIXME: si le total est toujours inferieur, il faudrait réitérer la fin autant que nécessaire, pour atteindre la quantité souhaité, ou abaisser les exigeance.
+            //PS : rien de dit que le cas de figure non géré puisse arriver. peutêtre que lancer une exeption dans ce cas pourrais être une bonne idée pour rerpérer le problème.
         }
+        
+        
         /*
         while (this.totalFloods()>totalDiscret) {
             var tdcTropPercu = this.totalFloods() - totalDiscret;
