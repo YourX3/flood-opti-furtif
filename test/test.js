@@ -135,6 +135,12 @@ describe("Dans l'applicatif métier on trouve :", function() {
             leFloodeur.tdc = 953154136;
             laCible.tdc = 489209281;
             expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(8421474);
+            
+            leFloodeur.tdc = 195206359;
+            laCible.tdc = 110380444;
+            expect(leFloodeur.calculLeProchainFloodSur(laCible)).toBe(8518175);
+            
+            
         });
         it("si la cible est déjà presque hors porté, la flooder de 20%", function() {
             leFloodeur.tdc = 999;
@@ -237,8 +243,8 @@ describe("Dans l'applicatif métier on trouve :", function() {
             serieDeFloods.enchainerLesFloods();
             expect(serieDeFloods.ratio(0)).toBeGreaterThan(1.9);
             expect(serieDeFloods.ratio(serieDeFloods.floods.length-2)).toBeGreaterThan(0.5);
-            expect(serieDeFloods.ratio(serieDeFloods.floods.length-2)).toBeLessThan(0.515);
-            expect(serieDeFloods.ratio(serieDeFloods.floods.length-1)).toBeLessThan(0.38);
+            expect(serieDeFloods.ratio(serieDeFloods.floods.length-2)).toBeLessThan(0.52);
+            expect(serieDeFloods.ratio(serieDeFloods.floods.length-1)).toBeLessThan(0.39);
         });
         /*
         it("(vérification de la précision de l'algo de flood optimisé sur un pannel de nombre aléatoire)", function() {

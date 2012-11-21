@@ -198,7 +198,7 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
     };
     this.verifieSiLaCibleEstAtteignable = function (fourmiliereCible){
         if(fourmiliereCible.tdc <= 50) throw RangeError('tdc de la cible <= 50');
-        if(fourmiliereCible.tdc <= 0.5 * this.tdc) throw RangeError('tdc de la cible <= 50% de celui du flooder');
+        if(fourmiliereCible.tdc <= Math.floor(0.5 * this.tdc)) throw RangeError('tdc de la cible <= 50% de celui du flooder');
         if(fourmiliereCible.tdc > 3 * this.tdc) throw RangeError('cible trop grande');
     };
     this.optimiseLesFloodProcheDuSeuilDePortee = function (fourmiliereCible, tdcAFlooder){
@@ -216,7 +216,7 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
         try{
             fourmiliereDuFloodeurApresFlood.verifieSiLaCibleEstAtteignable(fourmiliereCibleApresFlood);
         } catch (exception){
-            if(exception.message == 'tdc de la cible <= 50% de celui du flooder') tdcAFlooder = Math.floor( ( fourmiliereCible.tdc - Math.floor(0.5 * this.tdc + 1) )*2/3);
+            if(exception.message == 'tdc de la cible <= 50% de celui du flooder') tdcAFlooder = Math.floor( ( fourmiliereCible.tdc - (0.5 * this.tdc + 1) )*2/3);
             else if(exception.message == 'tdc de la cible <= 50') tdcAFlooder = fourmiliereCible.tdc - 51;
             else throw exception;
         }
