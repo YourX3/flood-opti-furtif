@@ -251,7 +251,34 @@ function actualiserLeTableauDeFlood(){
         $('#espaceResultat').html('<span class="error">'+exeption.message+'</span>');
     }
 }
-
+function preremplirLesChampsSelonLAdresseURL(url){
+    var tdc = extraireLesHauteurTdcDeLAdresseURL(url);
+    $('#tdcFloodeur').attr('value',tdc.floodeur);
+    $('#tdcCible').attr('value',tdc.cible);
+    
+}
+function extraireLesHauteurTdcDeLAdresseURL(url){
+    var parametresUrl = extraireLesParametresDeLAdresseURL(url);
+    var tdc = {floodeur:'',cible:''};
+    if(parametresUrl.length===0) return tdc;
+    for(var param=0 ; param<parametresUrl.length;param++){
+        console.log(param);
+        console.log(parametresUrl[param]);
+        if(parametresUrl[param].match(/^f/i)!==null) tdc.floodeur = str2int(parametresUrl[param]);
+        if(parametresUrl[param].match(/^c/i)!==null) tdc.cible = str2int(parametresUrl[param]);
+    }
+    return tdc;
+}
+function extraireLesParametresDeLAdresseURL(url){
+    if(!url) url = document.location.href;
+    var parametresUrl;
+    try{
+        parametresUrl = url.split('#')[1].split(',');
+    }catch(e){
+        parametresUrl = [];
+    }
+    return parametresUrl;
+}
 
 function GenerateurHtml(serieDeFloods){
     this.lesFloods = serieDeFloods;
