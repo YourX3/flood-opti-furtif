@@ -232,9 +232,9 @@ function Fourmiliere(tdc,niveauDeDiscretion) {
 
 /* fonctions avec interaction dom html */
 function normaliseLaValeurDuChampNumerique(idDuChamp){
-    var nombreConverti = str2int($('#'+idDuChamp).attr('value'));
+    var nombreConverti = str2int($('#'+idDuChamp).val());
     if(nombreConverti>0){
-        $('#'+idDuChamp).attr('value',nombreConverti);
+        $('#'+idDuChamp).val(nombreConverti);
         return nombreConverti;
     } else throw new RangeError("tdc incorrect, merci d'entrer un nombre entier strictement positif");
 }
@@ -242,7 +242,7 @@ function actualiserLeTableauDeFlood(){
     try {
         var leFloodeur = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcFloodeur'));
         var laCible = new Fourmiliere(normaliseLaValeurDuChampNumerique('tdcCible'));
-        leFloodeur.niveauDeDiscretion = $('#niveauDeDiscretion').attr('value');
+        leFloodeur.niveauDeDiscretion = $('#niveauDeDiscretion').val();
         var serieDeFloods = new Floods(leFloodeur, laCible);
         serieDeFloods.enchainerLesFloods();
         var prepareLeHtml = new GenerateurHtml(serieDeFloods);
