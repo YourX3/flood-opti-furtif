@@ -427,10 +427,10 @@ describe("Dans l'interface", function() {
         });
         it("s'autocorrigent en normalisant leur données", function() {
             normaliseLaValeurDuChampNumerique('tdcFloodeur');
-            expect($('#tdcFloodeur').attr('value')).toBe('50000000');
+            expect($('#tdcFloodeur').val()).toBe('50000000');
         });
         it("lancent une exeption si aucun nombre valide n'est fourni", function() {
-            $('#tdcFloodeur').attr('value', 'je raconte ma vie !');
+            $('#tdcFloodeur').val('je raconte ma vie !');
             expect(function(){normaliseLaValeurDuChampNumerique('tdcFloodeur');}).toThrow("tdc incorrect, merci d'entrer un nombre entier strictement positif");
         });
         describe("se pré-remplissent avec les hauteur de tdc passé dans l'url", function() {
@@ -448,20 +448,20 @@ describe("Dans l'interface", function() {
                 it("en pré-remplissant les champs de saisie", function() {
                     setFixtures('<input id="tdcFloodeur"/><input id="tdcCible"/>');
                     preremplirLesChampsSelonLAdresseURL('http://url#F5278849,C6850763');
-                    expect($('#tdcFloodeur').attr('value')).toEqual('5278849');
-                    expect($('#tdcCible').attr('value')).toEqual('6850763');
+                    expect($('#tdcFloodeur').val()).toEqual('5278849');
+                    expect($('#tdcCible').val()).toEqual('6850763');
         
                     preremplirLesChampsSelonLAdresseURL('http://url#F527884');
-                    expect($('#tdcFloodeur').attr('value')).toEqual('527884');
+                    expect($('#tdcFloodeur').val()).toEqual('527884');
         
                     preremplirLesChampsSelonLAdresseURL('http://url#C650763');
-                    expect($('#tdcCible').attr('value')).toEqual('650763');
+                    expect($('#tdcCible').val()).toEqual('650763');
                 });
                 it("sans rien mettre quand aucun parametre n'est fourni", function() {
                     setFixtures('<input id="tdcFloodeur"/><input id="tdcCible"/>');
                     preremplirLesChampsSelonLAdresseURL('http://url');
-                    expect($('#tdcFloodeur').attr('value')).toEqual('');
-                    expect($('#tdcCible').attr('value')).toEqual('');
+                    expect($('#tdcFloodeur').val()).toEqual('');
+                    expect($('#tdcCible').val()).toEqual('');
                 });
         });
     });

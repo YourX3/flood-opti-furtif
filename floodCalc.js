@@ -253,8 +253,8 @@ function actualiserLeTableauDeFlood(){
 }
 function preremplirLesChampsSelonLAdresseURL(url){
     var tdc = extraireLesHauteurTdcDeLAdresseURL(url);
-    $('#tdcFloodeur').attr('value',tdc.floodeur);
-    $('#tdcCible').attr('value',tdc.cible);
+    $('#tdcFloodeur').val(tdc.floodeur);
+    $('#tdcCible').val(tdc.cible);
     
 }
 function extraireLesHauteurTdcDeLAdresseURL(url){
